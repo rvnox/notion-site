@@ -154,6 +154,13 @@ func (tm *ToMarkdown) GenerateTo(ns *NotionSite) (*FrontMatter, error) {
 		return fm, t.Execute(ns.files.currentWriter, tm)
 	}
 	if tm.NotionProps.IsFolder() != true {
+
+		// 在正文最前面插入一次 more（先写入 more，再拷贝内容）
+		preContent := []byte("<!--more-->\n")
+		if _, err := ns.files.currentWriter.Write(preContent); err != nil {
+			return fm, err
+		}		
+		
 		_, err := io.Copy(ns.files.currentWriter, tm.ContentBuffer)
 		return fm, err
 	}
@@ -328,9 +335,10 @@ func (tm *ToMarkdown) GenBlock(bType string, block MdBlock, addMoreTag bool, ski
 	}
 
 	if !skip {
-		if addMoreTag {
+		
+	/*	if addMoreTag {
 			tm.ContentBuffer.WriteString("<!--more-->")
-		}
+		}	*/	
 
 		if block.HasChildren() {
 			block.Depth++
