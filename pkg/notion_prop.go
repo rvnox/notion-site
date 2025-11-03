@@ -352,6 +352,10 @@ func getDynamicPropValue(page notion.Page, propDef PropDef) interface{} {
 		if prop.Title != nil && len(prop.Title) > 0 {
 			return ConvertRichText(prop.Title)
 		}
+	case "created_time":
+		if prop.CreatedTime != nil {
+			return prop.CreatedTime.Format(time.RFC3339)
+		}		
 	default:
 		// 未知类型，尝试转换为字符串
 		if prop.RichText != nil && len(prop.RichText) > 0 {
