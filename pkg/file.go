@@ -215,18 +215,23 @@ func (files *Files) saveTo(reader io.Reader, rawURL, distDir string) (string, er
 		return "", fmt.Errorf("malformed url: %s", err)
 	}
 
-	// gen file name
+	// gen file name: 始终使用倒数第二段 + UUID
 	splitPaths := strings.Split(u.Path, "/")
-	imageFilename := splitPaths[len(splitPaths)-1]
-	if strings.HasPrefix(imageFilename, "Untitled.") {
-		imageFilename = splitPaths[len(splitPaths)-2] + filepath.Ext(u.Path)
+	if len(splitPaths) < 2 {
+		return "", fmt.Errorf("url path too short: %s", u.Path)
+	}
+	baseName := splitPaths[len(splitPaths)-2]
+	ext := filepath.Ext(splitPaths[len(splitPaths)-1])
+	if ext == "" {
+		ext = ".png" // 防止没有扩展名
 	}
 
 	if err := os.MkdirAll(distDir, 0755); err != nil {
 		return "", fmt.Errorf("%s: %s", distDir, err)
 	}
 
-	filename := fmt.Sprintf("%s_%s", u.Hostname(), imageFilename)
+	// 拼接文件名：倒数第二段 + UUID + 扩展名
+	filename := fmt.Sprintf("%s_%s%s", baseName, uuid.NewString(), ext)
 	out, err := os.Create(filepath.Join(distDir, filename))
 	if err != nil {
 		return "", fmt.Errorf("couldn't create image file: %s", err)
